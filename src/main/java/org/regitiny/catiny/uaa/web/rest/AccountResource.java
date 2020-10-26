@@ -1,10 +1,13 @@
 package org.regitiny.catiny.uaa.web.rest;
 
+import org.regitiny.catiny.uaa.business.MasterBusiness;
 import org.regitiny.catiny.uaa.domain.User;
 import org.regitiny.catiny.uaa.repository.UserRepository;
 import org.regitiny.catiny.uaa.security.SecurityUtils;
 import org.regitiny.catiny.uaa.service.MailService;
+import org.regitiny.catiny.uaa.service.MasterService;
 import org.regitiny.catiny.uaa.service.UserService;
+import org.regitiny.catiny.uaa.service.dto.MasterDTO;
 import org.regitiny.catiny.uaa.service.dto.PasswordChangeDTO;
 import org.regitiny.catiny.uaa.service.dto.UserDTO;
 import org.regitiny.catiny.uaa.web.rest.errors.*;
@@ -45,12 +48,18 @@ public class AccountResource
 
   private final MailService mailService;
 
-  public AccountResource(UserRepository userRepository, UserService userService, MailService mailService)
+  private final MasterService masterService;
+
+  private final MasterBusiness masterBusiness;
+
+  public AccountResource(UserRepository userRepository, UserService userService, MailService mailService, MasterService masterService, MasterBusiness masterBusiness)
   {
 
     this.userRepository = userRepository;
     this.userService = userService;
     this.mailService = mailService;
+    this.masterService = masterService;
+    this.masterBusiness = masterBusiness;
   }
 
   /**
@@ -70,6 +79,15 @@ public class AccountResource
       throw new InvalidPasswordException();
     }
     User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+    try
+    {
+      masterService.createMasterWhenRegisterUser(user);
+    }
+    catch (Exception e)
+    {
+      log.error("User is not signed up yet " , e );
+    }
+
     mailService.sendActivationEmail(user);
   }
 
@@ -139,6 +157,18 @@ public class AccountResource
     }
     userService.updateUser(userDTO.getFirstName(), userDTO.getLastName(), userDTO.getEmail(),
       userDTO.getLangKey(), userDTO.getImageUrl());
+
+    User user2 = user.get();
+
+    user2.setFirstName(userDTO.getFirstName());
+    user2.setLastName(userDTO.getLastName());
+    user2.setEmail(userDTO.getEmail());
+    user2.setImageUrl(userDTO.getImageUrl());
+
+    MasterDTO masterDTO = masterBusiness.updateMasterWhenUpdateUser(user.get());
+
+
+    log.debug("after update master = {}" ,masterDTO);
   }
 
   /**

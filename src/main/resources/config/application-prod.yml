@@ -64,10 +64,17 @@ spring:
   liquibase:
     contexts: prod
   mail:
-    host: localhost
-    port: 25
-    username:
-    password:
+    #    host: localhost
+    #    port: 25
+    host: smtp.gmail.com
+    port: 587
+    username: vstokyjz00@gmail.com
+    password: muzljuzhzpqcxfzi
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
   thymeleaf:
     cache: true
   sleuth:
@@ -134,7 +141,7 @@ jhipster:
         # Refresh Token is valid for 7 days
         token-validity-in-seconds-for-remember-me: 252000
   mail: # specific JHipster mail property, for standard properties see MailProperties
-    base-url: http://my-server-url-to-change # Modify according to your server's URL
+    base-url: http://catiny.com:10000 # Modify according to your server's URL
   metrics:
     logs: # Reports metrics in the logs
       enabled: false
